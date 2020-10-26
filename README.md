@@ -1,4 +1,5 @@
-#TP2_MEMORIA_DINAMICA
+TP2_MEMORIA_DINAMICA
 
 Alumno: Dante Fayanas
+
 Curso: 2°11
