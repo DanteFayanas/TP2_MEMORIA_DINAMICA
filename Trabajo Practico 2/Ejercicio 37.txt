@@ -1,0 +1,136 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+typedef struct{
+    long clave; //Clave o Id del registro
+    char d[30]; // Descripcion
+    unsigned char tipo; //Tipo de datos como entero sin signo
+    char b; //'A':Alta 'B':Baja
+}datos_t;
+
+typedef struct{
+    long clave;
+    int pos;
+}reg_t;
+
+struct pila{
+    reg_t reg;
+    struct pila *l;
+};
+
+struct pila* apilar(long, struct pila*);
+
+
+
+int main()
+{
+    int op;
+    long clave;
+    char out = 0;
+    FILE *fp;
+    datos_t datos;
+    struct pila *p, *r;
+    p = r = NULL;
+    do{
+            system("cls");
+            printf("----Menu----\n");
+            printf("1-Cargue el registro\n");
+            printf("2-Renueve el registro\n");
+            printf("0-Salir\n");
+            scanf("%d",&op);
+        switch(op)
+        {
+        case 1:
+            system("cls");
+            printf("\nIngrese clave del registro a apilar:\t");
+            scanf("%ld", &clave);
+            r = apilar(clave, p);
+            if(!r)
+                r = p;
+            else
+                p = r;
+            while (r)
+            {
+                printf("\n REGISTRO: %ld", r->reg.clave);
+                printf("\n POSICION: %d", r->reg.pos);
+                r = r->l;
+            }
+            system("pause");
+            break;
+
+
+        case 2:
+            system("cls");
+            fp = fopen("Registros.dat","ab");
+            if(!fp)
+            {
+                printf("\nError al abrir el archivo de registros");
+                system("pause");
+                break;
+            }
+            printf("\nIngrese nuevo registro para cargar en el archivo");
+            fflush(stdin);
+            printf("\nClave:\t"); scanf("%ld", &datos.clave);
+            fflush(stdin);
+            printf("\nDescripcion:\t"); scanf("%s", datos.d);
+            fflush(stdin);
+            printf("\nTipo:\t"); scanf("%c", &datos.tipo);
+            fflush(stdin);
+            printf("\nAlta/Baja:\t"); scanf("%c", &datos.b);
+            fwrite(&datos, sizeof(datos_t), 1, fp);
+            fclose(fp);
+            system("pause");
+            break;
+
+        case 0:
+            out = 1;
+            break;
+        }
+    }while(!out);
+    return 0;
+}
+
+struct pila * apilar(long clave, struct pila *p)
+{
+    int i, flag = 0;
+    FILE *fp;
+    datos_t datos;
+    struct pila *aux, *r;
+    aux = r = NULL;
+    fp = fopen("Registros.dat","rb");
+    if(!fp)
+    {
+        printf("\nError al abrir el archivo de registros\n");
+        return NULL;
+    }
+    fread(&datos, sizeof(datos_t), 1, fp);
+    for(i=1; !feof(fp); i++)
+    {
+        if(datos.clave == clave)
+            if((datos.b == 'A') && (datos.tipo &(1<<4) == 16))
+            {
+                printf("\nRegistro encontrado\n");
+                aux = (struct pila*) malloc(sizeof(struct pila));
+                if(!aux)
+                    printf("\nError al agregar elemento a la pila\n");
+                for(r=p; r; r=r->l)
+                    if(r->reg.clave == clave)
+                    {
+                      printf("\nYa existe el elemento en la pila\n");
+                      fclose(fp);
+                      return NULL;
+                    }
+                aux->reg.clave = clave;
+                aux->reg.pos = i;
+                aux->l = p;
+                p = aux;
+                fclose(fp);
+                return p;
+            }
+    fread(&datos, sizeof(datos_t), 1, fp);
+    }
+    printf("\nRegistro no encontrado\n");
+    fclose(fp);
+    return NULL;
+}

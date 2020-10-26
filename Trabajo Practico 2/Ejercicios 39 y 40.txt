@@ -1,0 +1,247 @@
+#include <stdio.h>
+#include <stdlib.h>
+/*EJERCICIO 39:
+
+Hacer un programa que tome los datos de medición de potencia, cargados por el usuario, de un sistema de medición a distancia.
+Donde estado es la multiplicación del valor ASCII de la primer letra de la descripción por la potencia.
+Los datos cargados se deberán guardar en una lista ordenada, de mayor a menor, del valor de potencia.
+Una vez finalizada la carga guardar los datos en un archivo de organización directa llamado "potencia.dat" imprimiendo en pantalla los datos.
+*/
+/*EJERCICIO 40:
+Utilizando el archivo “potencia.dat” creado en el Ejercicio 39, realizar una función que pase como parámetro, entre otros datos, la clave del registro (id).
+La función ubicará el registro correspondiente al id pasado como parámetro,
+y utilizando punteros imprimirá la primera palabra del campo "desc" en forma inversa,
+además cambiará el estado del bit 3 para luego actualizar el archivo.
+Además, se agregará a una pila la potencia cuando los bits 0 y 2, del campo estado, estén encendidos,
+en caso contrario se agregará el registro al archivo “salida.dat” de organización secuencial.
+*/
+
+typedef struct
+{
+    char desc[60];
+    unsigned char potencia;
+    unsigned int estado;
+}datos_d;
+struct lista
+{
+    datos_d datos;
+    struct lista *l;
+};
+typedef struct
+{
+    datos_d datos;
+    long id;
+}bf_t;
+struct pila
+{
+    datos_d datos;
+    struct pila *l;
+};
+struct pila * ej40(long,struct pila *);
+int main()
+{
+ struct lista *p=NULL, *u=NULL, *aux, *r;
+ struct pila *pilita=NULL,*r1;
+
+ bf_t bf;
+ FILE *fp;
+ int op,i,j;
+ long id,idleido,idleer;
+
+ do{
+system ("cls");
+printf("*****-Menu-*****\n");
+printf("1-Agregue datos de medicion\n");
+printf("2-Guardar los datos e imprimirlos\n");
+printf("3-Funcion ejercicio 40\n");
+printf("0-Salir\n");
+scanf("%d",&op);
+
+switch(op)
+ {
+ case 1:
+    system ("cls");
+    aux=(struct lista *)malloc(sizeof(struct lista));
+    if(aux)
+    {
+
+        printf("\n Ingrese los datos:\n ");
+        printf("Ingrese descripcion: ");
+        fflush(stdin);
+        gets(aux->datos.desc);
+        fflush(stdin);
+        printf("%s\n",aux->datos.desc);
+        printf("\n Ingrese la potencia: ");
+        scanf("%d",&aux->datos.potencia);
+        fflush(stdin);
+        aux->datos.estado=(int)(aux->datos.desc[0]*aux->datos.potencia);
+
+        if(p==NULL)
+        {
+            p=u=aux;
+            u->l=NULL;
+            printf("Se va a cargar el primer elemento \n");
+
+        }
+        else
+            {
+
+            while(1)        /*chequear este while*/
+            {
+                 if(p->datos.potencia < aux->datos.potencia)
+                 {
+                    aux->l=p;
+                    p=aux;
+                    printf("Se cargo uno mayor\n");
+                    break;
+                 }
+            r=p;
+            while(r->l)
+                {
+                 if(r->l->datos.potencia > aux->datos.potencia)
+                    r=r->l;
+                 else
+                    break;
+                }
+            if(r==u)
+            {
+               u->l=aux;
+               u=aux;
+               u->l=NULL;
+               printf("Se cargo el ultimo \n");
+               break;
+            }
+            //* Otro lugar*/
+            aux->l=r->l;
+            r->l=aux;
+            break;
+            }
+    }
+    }
+    system ("pause");
+    break;
+
+
+
+
+ case 2:
+
+    system ("cls");
+    fp=fopen("Potencia.dat","wb");
+    r=p;
+    for(id=1;r;id++)
+    {
+
+       printf("\n Potencia= %d",r->datos.potencia);//*   Potencia    Descrpicion     Estado*/
+       printf("\t Descripcion: %s \t\t",r->datos.desc);
+       printf("\t Estado= %d\n",r->datos.estado);
+       bf.datos=r->datos;
+       bf.id=id;
+       fwrite(&bf,sizeof(bf_t),1,fp);
+       r=r->l;
+
+    }
+    fclose(fp);
+
+    system("pause");
+    break;
+
+ case 3: /*Ejercicio 40*/
+        printf("\n Cargue el Id que desea modificar: ");
+        scanf("%d",&idleer);
+       r1=ej40(idleer,pilita);
+       if(!r1)
+        {
+        break;
+        }else
+        pilita=r1;
+       for(r1=pilita;r1;r1=r1->l)
+    {
+
+       printf("\n Potencia= %d",r1->datos.potencia);//*   Potencia    Descrpicion     Estado*/
+
+    }
+        system("pause");
+        break;
+
+    }
+
+ }while(op!=0);
+
+    return 0;
+}
+
+struct pila * ej40(long idleido,struct pila *p)
+    {
+
+    struct pila *aux, *r;
+     bf_t bf;
+     FILE *fp,*fp1;
+     char *c;
+     aux=r=NULL;
+     printf("Entraste a la funcion \n");
+     fp=fopen("Potencia.dat","rb+");
+     if(fp==NULL)
+     {
+        printf("\n El archivo no existe, primero debe crearlo\n");
+        system("pause");
+        return;
+     }
+     /*Funcion para invertir desc en base al ID pasado*/
+   /* char *c;*/
+
+    fread(&bf,sizeof(bf_t),1,fp);
+    while(!feof(fp))
+        {
+            if(idleido==bf.id)
+            {
+                printf("\n Se encontro el id \n");
+                c=bf.datos.desc;
+                bf.datos.estado^=(1<<3);
+                printf("%x",bf.datos.estado);
+                fwrite(&bf,sizeof(bf_t),1,fp);
+
+                while(*c!= ' ' && *c)
+                    c++;
+
+                *c=0;
+                do
+                {
+                    printf("%c",*c);
+                    c--;
+                }while((c+1)!=bf.datos.desc);
+                system("pause");
+                 /*Pregunto si los bits 0 y 2 estan encendidos para crear una pila */
+
+                if(bf.datos.estado&(1<<0) && bf.datos.estado&(1<<2))
+                {
+                    aux = (struct pila *) malloc(sizeof(struct pila));
+                    aux->datos.potencia = bf.datos.potencia;
+                    aux->l = p ;
+                    p = aux;
+                    fclose(fp);
+                    printf("Se apilo el dato\n");
+                    system("pause");
+
+                    return p;
+                    /*Termina la pila*/
+                }
+                else{
+                /*Archivo Salida.dat*/
+                fp1=fopen("Salida.dat","ab");
+                fwrite(&bf,sizeof(bf_t),1,fp);
+                fclose(fp);
+                printf("Se envio el archivo Salida.dat\n");
+                system("pause");
+                return NULL;
+                }
+
+            }
+        fread(&bf,sizeof(bf_t),1,fp);
+
+        }
+        fclose(fp);
+        printf("No se encontro el ID solicitado \n");
+        system("pause");
+        return NULL;
+    }

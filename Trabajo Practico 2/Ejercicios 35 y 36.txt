@@ -1,0 +1,224 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+/*EJERCICIO 35:
+
+Hacer un programa que tome los datos de contacto de una persona
+(Nombre, Apellido, edad, teléfono, mail) y los cargue, en forma directa,
+en una pila de memoria dinámica. Imprimir en pantalla y cargar en un
+ archivo llamado "contactos.dat", de organización secuencial, los registros ingresados por el usuario si la persona tiene una edad mayor a 21 años.
+*/
+/*EJERCICIO 36:
+Hacer un programa que lea al archivo "contactos.dat" creado en el Ejercicio 35 y crear una lista,
+en memoria dinámica, ordenada alfabéticamente. Una vez creada la lista guardarla en un archivo de
+organización directa llamado "contactos_ordenados.dat" imprimiendola en pantalla.*/
+
+typedef struct
+{
+    char n[20];
+    char a[20];
+    int edad;
+    char tel[15];
+    char mail[30];
+    struct contacto *l;
+
+}contacto_t;
+struct pila
+{
+    contacto_t contacto;
+    struct pila *l;
+};
+struct lista
+{
+    contacto_t contacto;
+    struct lista *l1;
+};
+
+int main()
+{
+    FILE *fp;
+    int k;
+    struct pila *p, *aux;
+    struct lista *p1,*aux1, *r1, *u1;
+    contacto_t cont;
+    p=aux=NULL;
+    p1=aux=r1=u1;
+do{
+    system("cls");
+    printf("----Menu----\n");
+    printf("1-Cargue los datos\n");
+    printf("2-Imprimalos en pantalla\n");
+    printf("3-Ordena alfabeticamente segun nombre y crea un nuevo archivo ya ordenado\n");
+    printf("0-Salir\n");
+    scanf("%d",&k);
+
+    switch(k)
+    {
+    case 1:
+
+    aux=(struct pila*)malloc(sizeof(struct pila));
+
+    if(aux)
+    {
+
+        aux->l=p;
+        p=aux;
+        printf("Cargue los datos de la Persona: \n");
+        printf("Ingrese el nombre: \n");
+        scanf("%s",&aux->contacto.n);
+        fflush(stdin);
+        printf("Ingrese el Apellido: \n");
+        scanf("%s",&aux->contacto.a);
+        fflush(stdin);
+        printf("Ingrese edad: \n");
+        scanf("%d",&aux->contacto.edad);
+        fflush(stdin);
+        printf("Ingrese telefono: \n");
+        scanf("%s",&aux->contacto.tel);
+        fflush(stdin);
+        printf("Ingrese el mail: \n");
+        scanf("%s",&aux->contacto.mail);
+        fflush(stdin);
+        aux->l=p;
+        p = aux;
+        printf("Dato cargado correctamente \n");
+        system("pause");
+        break;
+    }
+    else
+        {
+        printf("\n Memoria insuficiente");
+        system("pause");
+        break;
+        }
+
+    case 2:
+        system ("cls");
+        fp=fopen("contactos.dat","ab");
+        if(fp==NULL)
+            {
+            printf("No se pudo crear el archivo contactos.dat \n");
+            system("pause");
+            break;
+            }
+
+        aux = p;
+        while(aux)
+        {
+
+        /*Impresion de Datos*/
+        printf("\n Nombre: %s ",aux->contacto.n);
+        printf("\t Apellido: %s",aux->contacto.a);
+        printf("\t Edad: %d",aux->contacto.edad);
+        printf("\t Telefono: %s",aux->contacto.tel);
+        printf("\t Mail: %s",aux->contacto.mail);
+
+        if(aux->contacto.edad > 21)
+            {
+            fwrite(&aux->contacto, sizeof(contacto_t), 1, fp);
+            }
+        aux= aux->l;
+
+        }
+        fclose(fp);
+        system("pause");
+        break;
+
+    case 3:
+        system("cls");
+        fp=fopen("contactos.dat","rb");
+        if(fp==NULL)
+            {
+            printf("No se pudo crear el archivo contactos.dat \n");
+            system("pause");
+            break;
+            }
+
+        aux1=(struct lista*) malloc(sizeof(struct lista));
+        if(aux1)
+        {
+            fread(&cont,sizeof(contacto_t),1,fp);
+            r1=p1;
+            if(p1==NULL)
+            {
+                p1=u1=aux1;
+                u1->l1=NULL;
+            }
+            aux1->contacto =cont;
+            while(!feof(fp))
+            {
+                while(1)
+                {
+                    if(strcmp(r1->contacto.n, aux1->contacto.n)>0)
+                    {
+                        aux1->l1=p1;
+                        p1=aux1;
+                        break;
+                    }
+                while(r1->l1)
+                {
+                    if(strcmp(r1->l1->contacto.n, aux1->contacto.n)<0)
+                    {
+                        r1=r1->l1;
+                    }
+
+                    else break;
+
+                }
+                if(r1==u1)
+                {
+                    u1->l1=aux1;
+                    u1=aux1;
+                    u1->l1=NULL;
+                    break;
+                }
+                aux1->l1=r1->l1;
+                r1->l1=aux1;
+                break;
+                }
+                fread(&cont,sizeof(contacto_t),1,fp);
+                aux1=(struct lista*) malloc(sizeof(struct lista));
+                aux1->contacto=cont;
+
+            }
+            fclose(fp);
+            printf("Se hizo la carga ordenada\n");
+            system("pause");
+            break;
+            /*Lista ordenada alfabeticamente cargada en memoria dinamica*/
+
+
+        }
+        /*Imprimir en pantalla y guardarla en un nuevo archivo*/
+        system("cls");
+        printf("Impresion de la nueva lista ordenada:\n");
+        fp=fopen("contactos_ordenados.dat","wb");
+        if(fp==NULL)
+            {
+            printf("No se pudo crear el archivo contactos.dat \n");
+            system("pause");
+            break;
+            }
+        aux1=p1;
+        while(aux1)
+            {
+                printf("\n-");
+                printf("\n Nombre: %s ",aux1->contacto.n);
+                printf("\t Apellido: %s",aux1->contacto.a);
+                printf("\t Edad: %d",aux1->contacto.edad);
+                printf("\t Telefono: %s",aux1->contacto.tel);
+                printf("\t Mail: %s",aux1->contacto.mail);
+                fwrite(&aux1->contacto,sizeof(contacto_t),1,fp);
+                aux1 = aux1->l1;
+            }
+        fclose(fp);
+        printf("Se cargo el archivo correctamente\n");
+        system("pause");
+        break;
+
+
+    }
+}while(k!=0);
+
+    return 0;
+}

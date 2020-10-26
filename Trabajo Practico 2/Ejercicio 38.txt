@@ -1,0 +1,72 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+/*EJERCICIO 38:
+
+Hacer una cola con los valores muestreados de un cuarto de ciclo de una señal sinusoidal,
+en 8 bits, para luego recorrerla y recomponer la señal completa.
+Las muetras deberán ir de 127 a -127 utilizando el bit más significativo en 1 para los valores negativos
+y en 0 para los valores positivos. Imprimir en pantalla los valores.
+*/
+
+struct cola
+    {
+        char valor;
+        struct cola *der, *izq;  /*Hago 2 lazos para recorrerla de derecha a izquierda y viceversa */
+    };
+
+int main()
+{
+    char x,m;
+    struct cola *aux,*p,*u;
+    p=NULL;
+    u=NULL;
+    m=0;
+    x=0;
+    for(x=0;x<91;x=x+5)
+    {
+        printf("Ingreso al for\n");
+      aux=(struct cola*)malloc(sizeof(struct cola));
+      aux->valor=(char)((double)127.0*sin((double)x*3.14/180));
+      printf("le cargue un valor\n");
+
+      if(!p) /*Primer elemento de la cola*/
+      {
+        p=u=aux;
+        aux->der = aux->izq =NULL;
+        printf("Cargo el primer elemento \n");
+
+      }
+      else
+      {
+         u->der=aux;
+         aux->der=NULL;
+         aux->izq=u;
+         u=aux;
+      }
+      m++;
+    }
+    m=1;
+    for(aux = p; aux; aux = aux->der)
+    {
+        printf("Muestra Nro. %d: v = %d\n", m, aux->valor);
+        m++;
+    }
+    for(aux = u->izq; aux; aux = aux->izq)
+    {
+        printf("Muestra Nro. %d: v = %d\n", m, aux->valor);
+        m++;
+    }
+    for(aux = p->der; aux; aux = aux->der)
+    {
+        printf("Muestra Nro. %d: v = %d\n", m, (-1) * aux->valor);
+        m++;
+    }
+    for(aux = u->izq; aux; aux = aux->izq)
+    {
+        printf("Muestra Nro. %d: v = %d\n", m, (-1) * aux->valor);
+        m++;
+
+    }
+    return 0;
+}
