@@ -1,0 +1,206 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+
+typedef struct{
+   long partNumber;
+   long serialNumber;
+   char descripcion[40];
+   char ubicacion[100];
+}repuestos_t;
+
+typedef struct{         //Lista
+    repuestos_t repuesto;
+    int cantidad;
+}extraccionRepuestos_t;
+
+struct lista{
+extraccionRepuestos_t ext;
+struct lista *sig;
+};
+
+struct cola{
+    extraccionRepuestos_t ext;
+    struct cola *l;
+};
+int main()
+{
+    struct lista *aux,*p=NULL,*u=NULL,*r;
+    repuestos_t repuestos;
+    struct cola *auxcola,*pc=NULL,*uc=NULL,*rc;
+    int k,l;
+    FILE *fp,*fp1;
+
+do{
+
+    aux=(struct lista *)malloc(sizeof (struct lista));
+    if(aux)
+{
+    printf("Bienvenido, Cargue los datos del repuesto: \n");
+    printf("\n----------------");
+    printf("\nIngrese partNumber: ");
+    scanf("%ld",&aux->ext.repuesto.partNumber);
+    fflush(stdin);
+    printf("\nIngrese serialNumber: ",&aux->ext.repuesto.serialNumber);
+    scanf("%ld",&aux->ext.repuesto.serialNumber);
+    fflush(stdin);
+    printf("\nIngrese descripcion: ");
+    scanf("%s",&aux->ext.repuesto.descripcion);
+    fflush(stdin);
+    printf("\nIngrese ubicacion: ");
+    scanf("%s",&aux->ext.repuesto.ubicacion);
+    fflush(stdin);
+    system("cls");
+
+
+
+    if(p==NULL)
+    {
+        printf("1\n");
+        p=u=aux;
+        u->sig=NULL;
+    }
+    else
+  {
+       r=p;
+       printf("2\n");
+    while(1)
+    {
+        if(r->ext.repuesto.partNumber == aux->ext.repuesto.partNumber)
+        {
+            printf("Este partnumber ya fue cargado se sumara a las lista \n");
+            r->ext.cantidad++;
+            break;
+        }
+        if(r->ext.repuesto.partNumber > aux->ext.repuesto.partNumber)
+        {
+            printf("3\n");
+          aux->sig=p;
+          p=aux;
+          break;
+        }
+        while(r->sig)
+        {
+            printf("4\n");
+            if(r->sig->ext.repuesto.partNumber < aux->ext.repuesto.partNumber)
+            r=r->sig;
+            else
+              break;
+        }
+
+        if(r==u)
+        {
+            printf("5\n");
+            u->sig=aux;
+            u=aux;
+            u->sig=NULL;
+            break;
+        }
+
+        printf("6\n");
+        aux->sig=r->sig;
+        r->sig=aux;
+        break;
+
+      aux->ext.cantidad=1;
+
+    }
+  }
+}
+printf("Presione 0 para salir \n");
+scanf("%d",&k);
+system("cls");
+
+
+}while(k!=0);
+do{
+
+   fp=fopen("stock.dat","rb");
+   if(fp=NULL)
+    printf("No se pudo abrir el archivo stock, error\n");
+
+   fp1=fopen("nuevo stock.dat","ab");
+   if(fp1=NULL)
+    printf("No se pudo crear el archivo stock nuevo , error\n");
+
+   fread(&repuestos,sizeof(repuestos_t),1,fp);
+   while(!feof(fp))
+   {
+       for(r=p;r==u;r=r->sig)
+       {
+           if(repuestos.partNumber == r->ext.repuesto.partNumber)
+           {
+             if(r->ext.cantidad!=0)
+             {
+                 r->ext.cantidad --;
+             }
+                else
+             {
+                 //Crear cola
+                 fwrite(&repuestos,sizeof(repuestos_t),1,fp1);
+             }
+           }
+            else
+            {
+            fwrite(&repuestos,sizeof(repuestos_t),1,fp1);
+            }
+
+
+       }//Termino de recorrer la lista
+
+    fread(&repuestos,sizeof(repuestos_t),1,fp);
+   }
+   fclose(fp);//Cierro la corriente del archivo stock
+   fclose(fp1);//Cierro la corriente del nuevo stock
+   if(remove("stock.dat"))
+        printf("\nError al borrar el archivo\n");
+   if(rename("nuevo stock.dat","stock.dat"))
+        printf("\nError al renombrar el archivo\n");
+
+    for(r=p;r==u;r=r->sig)
+    {
+        if(r->ext.cantidad==0)
+        {
+            auxcola=(struct cola *) malloc(sizeof(struct cola));
+            auxcola->ext.repuesto = r->ext.repuesto;
+
+
+            if(!pc)
+            {
+                pc=uc=auxcola;
+                auxcola->l=NULL;
+            }
+            else
+            {
+                for(rc=pc;rc->l;rc=rc->l)
+                {
+                    rc->l=auxcola;
+                    auxcola->l=NULL;
+                    uc=auxcola;
+
+                }
+            }
+
+        }
+    }
+    printf("\nImpresion de Cola:\n");
+            for(rc = pc; rc; rc = rc->l)
+            {
+                auxcola = rc;
+                printf("\n---------------------------------\n");
+                printf("DESCRIPCION:\t\t %s", rc->ext.repuesto.descripcion);
+                printf("\nUBICACION:\t\t %s", rc->ext.repuesto.ubicacion);
+                printf("\nNUMERO DE PIEZA:\t %ld", rc->ext.repuesto.partNumber);
+                printf("\nNUMERO DE SERIE:\t %ld", rc->ext.repuesto.serialNumber);
+                printf("\n---------------------------------\n");
+                free(auxcola);
+            }
+    system("pause");
+
+
+
+
+}while(l!=0);
+
+ return 0;
+}

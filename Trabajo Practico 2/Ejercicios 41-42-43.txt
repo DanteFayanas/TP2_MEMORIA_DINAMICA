@@ -1,0 +1,286 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef struct{
+   long partNumber;
+   long serialNumber;
+   char descripcion[40];
+   char ubicacion[100];
+   char alta;
+}repuestos_t;
+
+
+typedef struct{
+   long numeroDeOrden;
+   char cliente[40];
+   char descripciondeFalla[200];
+   char modelo[65];
+   char fecha[10];
+   char hora[10];
+}rep_t;
+
+struct lista
+{
+    repuestos_t repuestos;
+    struct lista *d,*i;
+};
+struct cola
+{
+    repuestos_t repuestos;
+    struct cola *izq;
+    struct cola *der;
+};
+
+struct pila
+{
+    rep_t repues;
+    struct pila *l;
+};
+
+int main()
+{
+    FILE *fp,*fp1,*fp2,*fp3;
+    struct lista *p,*u,*aux,*r;
+    repuestos_t rep;
+    p=u=NULL;
+    int k;
+    long a;
+    struct cola *pc=NULL,*uc=NULL,*auxc;
+    rep_t repues;
+    struct pila *pp,*auxp,*rp;
+    pp=auxp=rp=NULL;
+
+    do
+    {
+
+    system("cls");
+    printf("----Menu----\n");
+    printf("1-(EJERCICIO 41) Cargue los datos y imprima\n");
+    printf("2-(EJERCICIO 42)\n");
+    printf("3-(EJERCICIO 43)\n");
+
+
+    printf("9-Salir\n");
+    scanf("%d",&k);
+
+    switch(k)
+    {
+
+    case 1:
+        system("cls");
+        fp=fopen("stock.dat","ab");
+        if(fp==NULL)
+            {
+            printf("No se pudo crear el archivo stock.dat \n");
+            system("pause");
+            break;
+            }
+        do
+        {
+        printf("Si no quiere cargar mas datos presione 0\n");
+        aux=(struct lista*) malloc(sizeof(struct lista));
+
+        if(aux)
+        {
+        printf("Cargue los datos de Repuestos: \n");
+        printf("Ingrese el partNumber: \n");
+        scanf("%ld",&aux->repuestos.partNumber);
+        fflush(stdin);
+        printf("Ingrese el serialNumber: \n");
+        scanf("%ld",&aux->repuestos.serialNumber);
+        fflush(stdin);
+        printf("Ingrese descripcion: \n");
+        scanf("%s",&aux->repuestos.descripcion);
+        fflush(stdin);
+        printf("Ingrese ubicacion: \n");
+        scanf("%s",&aux->repuestos.ubicacion);
+        fflush(stdin);
+            r=p;
+        aux->repuestos.alta='A';
+
+            if(p==NULL)
+            {
+                p=u=aux;
+                u->d=NULL;
+            }
+            while(1)
+            {
+                if(strcmp(r->repuestos.descripcion, aux->repuestos.descripcion)>0)
+                {
+                    aux->d=p;
+                    p=aux;
+                    break;
+                }
+
+                while(r->d)
+                  if(strcmp(r->d->repuestos.descripcion, aux->repuestos.descripcion)>0)
+                    r=r->d;
+                  else break;
+
+                if(r==u)
+                {
+                    u->d=aux;
+                    u=aux;
+                    u->d=NULL;
+                    break;
+                }
+            aux->d=r->d;
+            r->d=aux;
+            break;
+            }
+
+
+        printf("Se cargo el dato correctamente\n");
+        system("pause");
+        }
+
+
+        }while(k!=0);
+
+        /*Salgo de la lista*/
+        for(r==p;r==u;r=r->d)
+        {
+            printf("----/Listado\----\n");      /*long partNumber;   long serialNumber;   char descripcion[40];   char ubicacion[100];*/
+            printf("partNumber: %ld \t",r->repuestos.partNumber);
+            printf("serialNumber: %ld \t",r->repuestos.serialNumber);
+            printf("descripcion: %s \t",r->repuestos.descripcion);
+            printf("ubicacion: %s \t",r->repuestos.ubicacion);
+            printf("-----------------\n");
+            fwrite(&r->repuestos,sizeof(repuestos_t),1,fp);
+        }
+        fclose(fp);
+        break;
+
+
+
+    case 2:
+        system("cls");
+        fp=fopen("stock.dat","rb+");
+         if(fp==NULL)
+            {
+            printf("No se pudo abrir el archivo stock.dat \n");
+            system("pause");
+            break;
+            }
+        fread(&r->repuestos,sizeof(repuestos_t),1,fp);
+        while(!feof(fp))
+        {
+
+        for(r==p;r==u;r=r->d)
+        {
+
+            if(r->repuestos.partNumber==1234)
+            {
+
+                 if(r->repuestos.partNumber & (1<<3) && r->repuestos.partNumber & (1<<5))
+                 {
+                     auxc=(struct cola *) malloc (sizeof(struct cola));
+                     if(!pc)
+                     {
+
+                        pc=uc=auxc;
+                        auxc->izq = NULL;
+                        auxc->der = NULL;
+                     }
+                     else
+                     {
+                       uc->der= auxc;
+                       auxc->izq = uc;
+                       auxc->der = NULL;
+                       uc=aux;
+                     }
+                     r->repuestos.alta='B';
+                    fwrite(&r->repuestos,sizeof(repuestos_t),1,fp);
+
+                 }
+            }
+
+        }
+        fread(&r->repuestos,sizeof(repuestos_t),1,fp);
+        }
+        fp1=fopen("nuevo.dat","wb");
+         for(r==p;r==u;r=r->d)
+         {
+             if(r->repuestos.alta=='A')
+             {
+               fwrite(&r->repuestos,sizeof(repuestos_t),1,fp1);
+
+             }
+         }
+        if(remove("stock.dat"))
+        {
+            printf("\n Error al eliminar el archivo \n");
+        }
+        if(rename("nuevo.dat","stock.dat"))
+        {
+           printf("\n Error al renombrar el archivo\n");
+        }
+
+        fclose(fp);
+        fclose(fp1);
+        system("pause");
+        fp2=fopen("fallados.dat","wb");
+
+        for(auxc=uc;auxc==NULL;auxc=auxc->izq)
+        {
+            fwrite(&auxc->repuestos,sizeof(repuestos_t),1,fp2);
+
+        }
+        printf("Se cargo correctamente la cola en fallados.dat\n");
+        fclose(fp2);
+        system("pause");
+        break;
+
+    case 3:
+
+        system("cls");
+        fp3=fopen("repuestos.dat","rb");
+        if(fp3==NULL)
+            printf("\nNo se encontro el archivo\n");
+
+        fread(&repues,sizeof(rep_t),1,fp3);
+        while(!feof(fp3))
+        {
+          auxp=(struct pila *) malloc(sizeof(struct pila));
+
+          if(auxp)
+          {
+                auxp->repues=repues;
+                auxp->l=pp;
+                pp=auxp;
+
+          }
+          else
+            printf("Memoria insuficiente \n");
+            system ("pause");
+            break;
+
+
+          fread(&repues,sizeof(rep_t),1,fp3);
+        }
+        fclose(fp3);
+
+        /*Imprimo la pila*/
+        auxp=pp;
+        while (1)
+        {
+            if(!aux) break;
+            printf("\nOrden: \n");
+            printf("\nNumero orden:%ld ",auxp->repues.numeroDeOrden);
+            printf("\nCliente:%s ",auxp->repues.cliente);
+            printf("\nDescripcion de la Falla:%s ",auxp->repues.descripciondeFalla);
+            printf("\nModelo:%s ",auxp->repues.modelo);
+            printf("\nFecha:%s ",auxp->repues.fecha);
+            printf("\nHora:%s ",auxp->repues.hora);
+
+            auxp=auxp->l;
+        }
+        printf("\nSe imprimio la pila\n");
+
+
+
+    }
+    }while(k!=9);
+
+    return 0;
+}
